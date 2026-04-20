@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>沙漠倾城官方音乐计算器</title>
+<style>
+/* 前面的CSS样式保持不变，以下是新增的换算键盘样式 */
+
+/* 换算键盘区域样式 */
+.convert-keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 8px;
+  margin: 15px 0;
+  padding: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.convert-key {
+  background: #333;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  height: 45px;
+  cursor: pointer;
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.convert-key:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+  filter: brightness(1.2);
+}
+.convert-key.num { 
+  background: #444; 
+  color: white;
+}
+.convert-key.dot { 
+  background: #444; 
+  color: white;
+}
+.convert-key.del { 
+  background: #f44336; 
+  color: white;
+  font-size: 16px;
+}
+.convert-key.enter { 
+  background: #4CAF50; 
+  color: white;
+  font-size: 16px;
+}
+.convert-key.zero { 
+  background: #444; 
+  color: white;
+  grid-column: span 2;
+}
+.convert-key.clear { 
+  background: #ff9800; 
+  color: white;
+  font-size: 16px;
+}
+.convert-key.percent { 
+  background: #2196F3; 
+  color: white;
+  font-size: 16px;
+}
+
+/* 换算键盘标题 */
+.convert-keypad-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #aaa;
+  margin: 10px 0 5px 0;
+  text-align: center;
+}
+
+/* 数字输入区域 */
+.number-input-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.number-input-label {
+  font-size: 14px;
+  color: #ccc;
+  min-width: 60px;
+}
+.number-input-field {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  font-family: "SF Mono", "Courier New", monospace;
+}
+.number-input-field:focus {
+  border-color: #ff9500;
+  background: rgba(255,255,255,0.12);
+}
+.number-input-buttons {
+  display: flex;
+  gap: 5px;
+}
+.number-input-btn {
+  padding: 8px 12px;
+  background: rgba(255,149,0,0.2);
+  border: 1px solid rgba(255,149,0,0.3);
+  border-radius: 6px;
+  color: #ff9500;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.number-input-btn:active {
+  transform: scale(0.95);
+  background: rgba(255,149,0,0.3);
+}
+.number-input-btn.clear {
+  background: rgba(244,67,54,0.2);
+  border-color: rgba(244,67,54,0.3);
+  color: #f44336;
+}
+.number-input-btn.clear:active {
+  background: rgba(244,67,54,0.3);
+}
+
+/* 其他CSS样式保持不变 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  background-color: #000;
+  color: white;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 标题栏 - 添加语音开关 */
+.header {
+  height: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(80,80,90,0.25);
+  flex-shrink: 0;
+}
+.title-tabs {
+  display: flex;
+  gap: 24px;
+}
+.title-tab {
+  font-size: 17px;
+  line-height: 22px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.active { color: white; font-weight: bold; }
+.inactive { color: #999; }
+.menu-btn { 
+  font-size: 19px; 
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+.menu-btn:hover { background: rgba(255,255,255,0.1); }
+.back-icon { width: 24px; height: 24px; filter: invert(1); }
+/* 语音开关按钮 */
+.voice-btn {
+  font-size: 20px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  background: rgba(255,149,0,0.1);
+  border: 1px solid rgba(255,149,0,0.3);
+}
+.voice-btn.active {
+  background: rgba(255,149,0,0.3);
+  border: 1px solid rgba(255,149,0,0.6);
+}
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 屏幕显示 */
+.screen {
+  height: 100px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  padding: 20px 26px 18px;
+  font-size: 50px;
+  font-weight: 300;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.screen::-webkit-scrollbar { height: 4px; }
+.screen::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); }
+.screen::-webkit-scrollbar-thumb { background: rgba(255,149,0,0.5); }
+
+/* 按钮区 - 5行4列布局，所有按钮统一大小 */
+.keypad {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  grid-gap: 10px;
+  padding: 15px 20px 20px;
+  overflow: hidden;
+}
+.btn {
+  border-radius: 16px;
+  border: none;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.1s;
+  user-select: none;
+  -webkit-user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+}
+.btn:active { 
+  transform: scale(0.98); 
+  opacity: 0.9;
+  filter: brightness(1.1);
+}
+.number { 
+  background: #333; 
+  color: white;
+  font-size: 28px;
+}
+.func { 
+  background: #ff9500; 
+  color: white;
+  font-size: 30px;
+}
+.gray-func { 
+  background: #a5a5a5; 
+  color: black;
+  font-size: 24px;
+}
+.zero {
+  font-size: 28px;
+}
+.plus-minus { 
+  background: #333; 
+  color: white;
+  font-size: 24px;
+}
+.equal-btn { 
+  background: #ff9500; 
+  color: white;
+  font-size: 32px;
+  font-weight: bold;
+}
+
+/* 换算界面 */
+.convert-panel {
+  display: none;
+  flex: 1;
+  padding: 20px 15px;
+  overflow-y: auto;
+}
+.convert-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.convert-item {
+  background: #1c1c1e;
+  border-radius: 12px;
+  padding: 15px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.convert-item:active { 
+  background: #2c2c2e; 
+  transform: scale(0.98);
+}
+.convert-icon {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 8px;
+  filter: invert(1);
+  opacity: 0.9;
+}
+.convert-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  line-height: 1.2;
+}
+.convert-desc {
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+}
+
+/* 底部链接 */
+.bottom-links {
+  text-align: center;
+  padding: 15px 10px 20px;
+  font-size: 10px;
+  line-height: 1.3;
+  word-break: break-all;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.02);
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+.links-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.link-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 130px;
+}
+.link-text { 
+  color: #fff; 
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  font-size: 10px;
+  margin-bottom: 1px;
+}
+.link-text:hover { color: #ff9500; }
+.url { 
+  color: #888; 
+  font-size: 9px;
+  font-family: "SF Mono", "Courier New", monospace;
+  word-break: break-all;
+  max-width: 150px;
+  line-height: 1.2;
+}
+
+/* 换算工具弹窗 */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-content {
+  background: #1c1c1e;
+  width: 100%;
+  max-width: 450px;
+  border-radius: 16px;
+  padding: 20px 15px;
+  animation: modalIn 0.3s ease-out;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-align: center;
+  color: white;
+}
+.convert-unit-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+.unit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.unit-input {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  min-width: 0;
+  font-family: "SF Mono", "Courier New", monospace;
+}
+.unit-input:focus {
+  border-color: #ff9500;
+  background: rgba(255,255,255,0.12);
+}
+/* 修复下拉菜单样式 */
+.unit-select {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  min-width: 0;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 18px;
+  padding-right: 36px;
+}
+.unit-select:focus {
+  border-color: #ff9500;
+  background-color: rgba(255,255,255,0.12);
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ff9500'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+}
+.unit-select::-ms-expand {
+  display: none;
+}
+.unit-select option {
+  background-color: #2c2c2e;
+  color: white;
+  padding: 8px;
+  font-size: 16px;
+}
+.unit-select option:checked {
+  background-color: #ff9500;
+  color: white;
+}
+.unit-select option:hover {
+  background-color: #3c3c3e;
+}
+.arrow {
+  color: #666;
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+.modal-result {
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  padding: 15px;
+  background: rgba(255,149,0,0.1);
+  border-radius: 10px;
+  margin: 15px 0;
+  color: #ff9500;
+  word-break: break-all;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "SF Mono", "Courier New", monospace;
+}
+.modal-buttons {
+  display: flex;
+  gap: 8px;
+}
+.modal-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn-primary {
+  background: #ff9500;
+  color: white;
+}
+.modal-btn-secondary {
+  background: #333;
+  color: white;
+}
+.modal-btn:active { transform: scale(0.98); }
+
+@media (max-height: 700px) {
+  .screen { height: 85px; font-size: 42px; padding: 15px 26px 12px; }
+  .convert-item { height: 85px; padding: 12px 6px; }
+  .convert-icon { width: 30px; height: 30px; margin-bottom: 6px; }
+  .convert-name { font-size: 11px; }
+  .convert-desc { font-size: 9px; }
+  .links-row { gap: 15px; }
+  .link-item { min-width: 110px; }
+  .link-text { font-size: 9px; }
+  .url { font-size: 8px; max-width: 130px; }
+  .convert-key { height: 40px; font-size: 16px; }
+  .modal-content { max-width: 420px; padding: 15px 12px; }
+}
+
+@media (max-width: 400px) {
+  .links-row { 
+    gap: 12px; 
+    flex-direction: column;
+  }
+  .link-item { 
+    min-width: 100%; 
+    margin-bottom: 3px;
+  }
+  .url { max-width: 100%; }
+  .modal-content { padding: 15px 10px; }
+  .unit-row { flex-direction: column; gap: 6px; }
+  .arrow { transform: rotate(90deg); }
+  .convert-keypad { grid-gap: 6px; padding: 8px; }
+  .convert-key { height: 38px; font-size: 16px; }
+}
+</style>
+</head>
+
+<body>
+<!-- 标题栏 -->
+<div class="header">
+  <div class="back-icon" id="back-btn" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 256 512" fill="white">
+      <path d="M64 448c-8.188 0-16.38-3.125-22.62-9.375-12.5-12.5-12.5-32.75 0-45.25L178.8 256 41.38 118.6c-12.5-12.5-12.5-32.75 0-45.25s32.75-12.5 45.25 0l160 160c12.5 12.5 12.5 32.75 0 45.25l-160 160C80.38 444.9 72.19 448 64 448z"/>
+    </svg>
+  </div>
+  <div class="title-tabs">
+    <div id="tab-calc" class="title-tab active">计算</div>
+    <div id="tab-convert" class="title-tab inactive">换算</div>
+  </div>
+  <div class="header-controls">
+    <!-- 语音开关按钮 -->
+    <div class="voice-btn" id="voice-btn" title="语音开关">🔇</div>
+    <div class="menu-btn" id="menu-btn">⋮</div>
+  </div>
+</div>
+
+<!-- 屏幕显示 -->
+<div class="screen" id="display">0</div>
+
+<!-- 计算器键盘（5行×4列布局，所有按钮统一大小） -->
+<div id="calc-keypad" class="keypad">
+  <!-- 第1行 -->
+  <button class="btn gray-func" data-action="clear">AC</button>
+  <button class="btn gray-func" data-action="backspace">⌫</button>
+  <button class="btn gray-func" data-action="percent">%</button>
+  <button class="btn func" data-action="operator" data-operator="/">÷</button>
+  
+  <!-- 第2行 -->
+  <button class="btn number" data-number="7">7</button>
+  <button class="btn number" data-number="8">8</button>
+  <button class="btn number" data-number="9">9</button>
+  <button class="btn func" data-action="operator" data-operator="*">×</button>
+  
+  <!-- 第3行 -->
+  <button class="btn number" data-number="4">4</button>
+  <button class="btn number" data-number="5">5</button>
+  <button class="btn number" data-number="6">6</button>
+  <button class="btn func" data-action="operator" data-operator="-">-</button>
+  
+  <!-- 第4行 -->
+  <button class="btn number" data-number="1">1</button>
+  <button class="btn number" data-number="2">2</button>
+  <button class="btn number" data-number="3">3</button>
+  <button class="btn func" data-action="operator" data-operator="+">+</button>
+  
+  <!-- 第5行（等号在最右侧） -->
+  <button class="btn plus-minus" data-action="plusminus">±</button>
+  <button class="btn number zero" data-number="0" style="font-size: 28px;">0</button>
+  <button class="btn number" data-number=".">.</button>
+  <button class="btn equal-btn" data-action="calculate">=</button>
+</div>
+
+<!-- 换算界面 -->
+<div id="convert-panel" class="convert-panel">
+  <div class="convert-grid" id="convert-grid">
+    <!-- 换算工具网格 -->
+  </div>
+</div>
+
+<!-- 底部链接 -->
+<div class="bottom-links">
+  <div class="links-row">
+    <div class="link-item">
+      <a href="https://smqcgf.github.io/com/" target="_blank" class="link-text">沙漠倾城官方音乐网站</a>
+      <span class="url">https://smqcgf.github.io/com/</span>
+    </div>
+    <div class="link-item">
+      <a href="https://smqcgf.github.io/YX/" target="_blank" class="link-text">沙漠倾城官方音乐消消乐</a>
+      <span class="url">https://smqcgf.github.io/YX/</span>
+    </div>
+  </div>
+</div>
+
+<!-- 换算工具弹窗 -->
+<div id="convert-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-title" id="modal-title">汇率转换</div>
+    <div class="convert-unit-group" id="modal-inputs">
+      <!-- 动态生成的输入框和下拉菜单 -->
+    </div>
+    <!-- 数字键盘区域 -->
+    <div class="convert-keypad" id="convert-keypad">
+      <!-- 数字键盘将通过JavaScript动态生成 -->
+    </div>
+    <div class="modal-result" id="modal-result">0</div>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-secondary" id="modal-close">关闭</button>
+      <button class="modal-btn modal-btn-primary" id="modal-calculate">计算</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 语音功能
+let speechEnabled = false;
+let speechSynthesis = window.speechSynthesis;
+let speechVoice = null;
+
+// 获取语音
+function initializeSpeech() {
+  speechSynthesis.onvoiceschanged = function() {
+    const voices = speechSynthesis.getVoices();
+    // 尝试查找中文语音
+    for (let voice of voices) {
+      if (voice.lang.includes('zh') || voice.lang.includes('ZH')) {
+        speechVoice = voice;
+        break;
+      }
+    }
+    // 如果没有中文语音，使用第一个可用的语音
+    if (!speechVoice && voices.length > 0) {
+      speechVoice = voices[0];
+    }
+  };
+  // 立即触发
+  speechSynthesis.getVoices();
+}
+
+// 语音播报
+function speak(text) {
+  if (!speechEnabled || !speechSynthesis) return;
+  
+  // 停止之前的语音
+  speechSynthesis.cancel();
+  
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (speechVoice) {
+    utterance.voice = speechVoice;
+  }
+  utterance.lang = 'zh-CN';
+  utterance.rate = 0.9;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  
+  speechSynthesis.speak(utterance);
+}
+
+// 语音开关
+const voiceBtn = document.getElementById('voice-btn');
+voiceBtn.addEventListener('click', () => {
+  speechEnabled = !speechEnabled;
+  if (speechEnabled) {
+    voiceBtn.textContent = '🔊';
+    voiceBtn.classList.add('active');
+    speak('语音已开启');
+  } else {
+    voiceBtn.textContent = '🔇';
+    voiceBtn.classList.remove('active');
+  }
+});
+
+// 计算器逻辑
+let currentInput = '0';
+let operator = '';
+let firstOperand = null;
+let isCalculated = false;
+
+const display = document.getElementById('display');
+
+// 更新显示
+function updateDisplay() {
+  let val = currentInput.toString();
+  if (val.includes('.')) {
+    val = val.replace('.', '·');
+  }
+  if (val.length > 12) {
+    val = val.substring(0, 12) + '…';
+  }
+  display.textContent = val;
+}
+
+// 计算函数
+function calculate() {
+  if (operator && firstOperand !== null && currentInput !== '') {
+    try {
+      const a = parseFloat(firstOperand);
+      const b = parseFloat(currentInput);
+      let result = 0;
+      
+      switch(operator) {
+        case '+': result = a + b; break;
+        case '-': result = a - b; break;
+        case '*': result = a * b; break;
+        case '/': 
+          if (b === 0) {
+            currentInput = 'Error';
+            updateDisplay();
+            if (speechEnabled) speak('错误：不能除以零');
+            return;
+          }
+          result = a / b; 
+          break;
+        default: result = a;
+      }
+      
+      result = parseFloat(result.toPrecision(12));
+      if (Math.abs(result) < 0.0000000001) result = 0;
+      currentInput = result.toString();
+      isCalculated = true;
+      
+      if (speechEnabled) {
+        speak(`等于 ${result}`);
+      }
+    } catch (error) {
+      currentInput = 'Error';
+      if (speechEnabled) speak('错误');
+    }
+  }
+  updateDisplay();
+}
+
+// 数字转换函数
+function arabicToChinese(number) {
+  const arabicDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const chineseDigits = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+  const chineseUnits = ['', '十', '百', '千'];
+  const bigUnits = ['', '万', '亿', '兆'];
+  
+  if (number === '0') return '零';
+  
+  let result = '';
+  let numStr = number.toString();
+  let isNegative = false;
+  
+  // 处理负数
+  if (numStr.startsWith('-')) {
+    isNegative = true;
+    numStr = numStr.substring(1);
+  }
+  
+  // 处理小数
+  let integerPart = numStr;
+  let decimalPart = '';
+  if (numStr.includes('.')) {
+    [integerPart, decimalPart] = numStr.split('.');
+  }
+  
+  // 转换整数部分
+  if (integerPart.length > 0) {
+    const integerNum = parseInt(integerPart);
+    if (integerNum === 0) {
+      result = '零';
+    } else {
+      const groups = [];
+      let temp = integerPart;
+      while (temp.length > 0) {
+        groups.unshift(temp.slice(-4));
+        temp = temp.slice(0, -4);
+      }
+      
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        let groupResult = '';
+        let hasZero = false;
+        
+        for (let j = 0; j < group.length; j++) {
+          const digit = parseInt(group[j]);
+          const pos = group.length - 1 - j;
+          
+          if (digit === 0) {
+            hasZero = true;
+          } else {
+            if (hasZero) {
+              groupResult += '零';
+              hasZero = false;
+            }
+            groupResult += chineseDigits[digit] + chineseUnits[pos];
+          }
+        }
+        
+        if (groupResult.length > 0) {
+          result += groupResult + bigUnits[groups.length - 1 - i];
+        } else if (i < groups.length - 1) {
+          result += '零';
+        }
+      }
+      
+      // 处理特殊情况
+      result = result.replace(/零+/g, '零');
+      result = result.replace(/^一十/g, '十');
+      result = result.replace(/零$/, '');
+    }
+  }
+  
+  // 转换小数部分
+  if (decimalPart && decimalPart.length > 0) {
+    result += '点';
+    for (let i = 0; i < decimalPart.length; i++) {
+      const digit = parseInt(decimalPart[i]);
+      result += chineseDigits[digit];
+    }
+  }
+  
+  if (isNegative) {
+    result = '负' + result;
+  }
+  
+  return result;
+}
+
+// 数字转中文金额函数
+function arabicToChineseMoney(number) {
+  const chineseMoneyDigits = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+  const chineseMoneyUnits = ['', '拾', '佰', '仟'];
+  const moneyBigUnits = ['', '万', '亿', '兆'];
+  const moneyDecimals = ['角', '分', '厘'];
+  
+  if (number === '0') return '零圆';
+  
+  let result = '';
+  let numStr = number.toString();
+  let isNegative = false;
+  
+  // 处理负数
+  if (numStr.startsWith('-')) {
+    isNegative = true;
+    numStr = numStr.substring(1);
+  }
+  
+  // 处理小数
+  let integerPart = numStr;
+  let decimalPart = '';
+  if (numStr.includes('.')) {
+    [integerPart, decimalPart] = numStr.split('.');
+  }
+  
+  // 转换整数部分
+  if (integerPart.length > 0) {
+    const integerNum = parseInt(integerPart);
+    if (integerNum === 0) {
+      result = '零';
+    } else {
+      const groups = [];
+      let temp = integerPart;
+      while (temp.length > 0) {
+        groups.unshift(temp.slice(-4));
+        temp = temp.slice(0, -4);
+      }
+      
+      for (let i = 0; i < groups.length; i++) {
+        const group = groups[i];
+        let groupResult = '';
+        let hasZero = false;
+        
+        for (let j = 0; j < group.length; j++) {
+          const digit = parseInt(group[j]);
+          const pos = group.length - 1 - j;
+          
+          if (digit === 0) {
+            hasZero = true;
+          } else {
+            if (hasZero) {
+              groupResult += '零';
+              hasZero = false;
+            }
+            groupResult += chineseMoneyDigits[digit] + chineseMoneyUnits[pos];
+          }
+        }
+        
+        if (groupResult.length > 0) {
+          result += groupResult + moneyBigUnits[groups.length - 1 - i];
+        } else if (i < groups.length - 1) {
+          result += '零';
+        }
+      }
+      
+      // 处理特殊情况
+      result = result.replace(/零+/g, '零');
+      result = result.replace(/^壹拾/g, '拾');
+      result = result.replace(/零$/, '');
+    }
+  }
+  
+  result += '圆';
+  
+  // 转换小数部分
+  if (decimalPart && decimalPart.length > 0) {
+    for (let i = 0; i < Math.min(decimalPart.length, 3); i++) {
+      const digit = parseInt(decimalPart[i]);
+      if (digit !== 0) {
+        result += chineseMoneyDigits[digit] + moneyDecimals[i];
+      } else if (i === 0) {
+        result += '零';
+      }
+    }
+  } else {
+    result += '整';
+  }
+  
+  if (isNegative) {
+    result = '负' + result;
+  }
+  
+  return result;
+}
+
+// 按钮事件处理
+function handleButtonClick(button) {
+  const action = button.getAttribute('data-action');
+  const number = button.getAttribute('data-number');
+  const operatorType = button.getAttribute('data-operator');
+  
+  if (isCalculated && action !== 'clear' && action !== 'backspace') {
+    isCalculated = false;
+  }
+  
+  // 语音播报
+  if (speechEnabled) {
+    if (number) {
+      speak(number === '.' ? '点' : number);
+    } else if (operatorType) {
+      const operatorNames = {
+        '+': '加',
+        '-': '减',
+        '*': '乘',
+        '/': '除'
+      };
+      speak(operatorNames[operatorType] || operatorType);
+    } else if (action === 'clear') {
+      speak('清除');
+    } else if (action === 'backspace') {
+      speak('退格');
+    } else if (action === 'percent') {
+      speak('百分比');
+    } else if (action === 'plusminus') {
+      speak('正负号');
+    } else if (action === 'calculate') {
+      speak('等于');
+    }
+  }
+  
+  // 数字按钮
+  if (number) {
+    if (currentInput === '0' || isCalculated) {
+      currentInput = number;
+      isCalculated = false;
+    } else {
+      currentInput += number;
+    }
+    updateDisplay();
+  }
+  
+  // 运算符按钮
+  else if (operatorType) {
+    if (operator && firstOperand !== null) {
+      calculate();
+    }
+    firstOperand = currentInput;
+    operator = operatorType;
+    currentInput = '';
+  }
+  
+  // 等号按钮
+  else if (action === 'calculate') {
+    calculate();
+    operator = '';
+    firstOperand = null;
+  }
+  
+  // 清除按钮
+  else if (action === 'clear') {
+    currentInput = '0';
+    operator = '';
+    firstOperand = null;
+    updateDisplay();
+  }
+  
+  // 退格按钮
+  else if (action === 'backspace') {
+    if (currentInput.length > 1) {
+      currentInput = currentInput.slice(0, -1);
+    } else {
+      currentInput = '0';
+    }
+    updateDisplay();
+  }
+  
+  // 百分比按钮
+  else if (action === 'percent') {
+    currentInput = (parseFloat(currentInput) / 100).toString();
+    updateDisplay();
+  }
+  
+  // 正负号按钮
+  else if (action === 'plusminus') {
+    if (currentInput !== '0' && currentInput !== '') {
+      if (currentInput.startsWith('-')) {
+        currentInput = currentInput.substring(1);
+      } else {
+        currentInput = '-' + currentInput;
+      }
+      updateDisplay();
+    }
+  }
+  
+  // 小数点按钮
+  else if (number === '.') {
+    if (!currentInput.includes('.')) {
+      currentInput += '.';
+      updateDisplay();
+    }
+  }
+}
+
+// 绑定按钮事件
+document.querySelectorAll('#calc-keypad button').forEach(button => {
+  button.addEventListener('click', () => handleButtonClick(button));
+});
+
+// 标签切换
+const tabCalc = document.getElementById('tab-calc');
+const tabConvert = document.getElementById('tab-convert');
+const calcKeypad = document.getElementById('calc-keypad');
+const convertPanel = document.getElementById('convert-panel');
+const convertGrid = document.getElementById('convert-grid');
+const backBtn = document.getElementById('back-btn');
+
+tabCalc.addEventListener('click', () => {
+  tabCalc.className = 'title-tab active';
+  tabConvert.className = 'title-tab inactive';
+  calcKeypad.style.display = 'grid';
+  convertPanel.style.display = 'none';
+  backBtn.style.display = 'none';
+  if (speechEnabled) speak('计算模式');
+});
+
+tabConvert.addEventListener('click', () => {
+  tabConvert.className = 'title-tab active';
+  tabCalc.className = 'title-tab inactive';
+  calcKeypad.style.display = 'none';
+  convertPanel.style.display = 'flex';
+  backBtn.style.display = 'block';
+  if (speechEnabled) speak('换算模式');
+});
+
+backBtn.addEventListener('click', () => {
+  tabCalc.click();
+});
+
+// 定义换算工具的数据
+const convertTools = [
+  { 
+    id: 'currency', 
+    name: '汇率转换', 
+    icon: '💱', 
+    desc: '多国货币换算',
+    units: [
+      { name: '人民币', symbol: 'CNY', rate: 1 },
+      { name: '美元', symbol: 'USD', rate: 0.138 },
+      { name: '欧元', symbol: 'EUR', rate: 0.127 },
+      { name: '日元', symbol: 'JPY', rate: 20.5 },
+      { name: '港币', symbol: 'HKD', rate: 1.08 },
+      { name: '英镑', symbol: 'GBP', rate: 0.109 }
+    ]
+  },
+  { 
+    id: 'length', 
+    name: '长度换算', 
+    icon: '📏', 
+    desc: '多种长度单位',
+    units: [
+      { name: '米', symbol: 'm', rate: 1 },
+      { name: '千米', symbol: 'km', rate: 0.001 },
+      { name: '厘米', symbol: 'cm', rate: 100 },
+      { name: '毫米', symbol: 'mm', rate: 1000 },
+      { name: '英尺', symbol: 'ft', rate: 3.28084 },
+      { name: '英寸', symbol: 'in', rate: 39.3701 },
+      { name: '英里', symbol: 'mi', rate: 0.000621371 }
+    ]
+  },
+  { 
+    id: 'weight', 
+    name: '重量换算', 
+    icon: '⚖️', 
+    desc: '多种重量单位',
+    units: [
+      { name: '千克', symbol: 'kg', rate: 1 },
+      { name: '克', symbol: 'g', rate: 1000 },
+      { name: '毫克', symbol: 'mg', rate: 1000000 },
+      { name: '磅', symbol: 'lb', rate: 2.20462 },
+      { name: '盎司', symbol: 'oz', rate: 35.274 },
+      { name: '吨', symbol: 't', rate: 0.001 }
+    ]
+  },
+  { 
+    id: 'temperature', 
+    name: '温度换算', 
+    icon: '🌡️', 
+    desc: '温度单位换算',
+    units: [
+      { name: '摄氏度', symbol: '°C', type: 'celsius' },
+      { name: '华氏度', symbol: '°F', type: 'fahrenheit' },
+      { name: '开尔文', symbol: 'K', type: 'kelvin' }
+    ]
+  },
+  { 
+    id: 'area', 
+    name: '面积换算', 
+    icon: '📐', 
+    desc: '面积单位换算',
+    units: [
+      { name: '平方米', symbol: 'm²', rate: 1 },
+      { name: '平方千米', symbol: 'km²', rate: 0.000001 },
+      { name: '公顷', symbol: 'ha', rate: 0.0001 },
+      { name: '平方英尺', symbol: 'ft²', rate: 10.7639 },
+      { name: '英亩', symbol: 'acre', rate: 0.000247105 },
+      { name: '亩', symbol: 'mu', rate: 0.0015 }
+    ]
+  },
+  { 
+    id: 'volume', 
+    name: '体积换算', 
+    icon: '📦', 
+    desc: '体积单位换算',
+    units: [
+      { name: '立方米', symbol: 'm³', rate: 1 },
+      { name: '升', symbol: 'L', rate: 1000 },
+      { name: '毫升', symbol: 'mL', rate: 1000000 },
+      { name: '立方英尺', symbol: 'ft³', rate: 35.3147 },
+      { name: '加仑(美)', symbol: 'gal', rate: 264.172 },
+      { name: '加仑(英)', symbol: 'gal(UK)', rate: 219.969 }
+    ]
+  },
+  { 
+    id: 'time', 
+    name: '时间换算', 
+    icon: '⏰', 
+    desc: '时间单位换算',
+    units: [
+      { name: '秒', symbol: 's', rate: 1 },
+      { name: '分', symbol: 'min', rate: 1/60 },
+      { name: '小时', symbol: 'h', rate: 1/3600 },
+      { name: '天', symbol: 'd', rate: 1/86400 },
+      { name: '周', symbol: 'week', rate: 1/604800 },
+      { name: '月', symbol: 'month', rate: 1/2592000 },
+      { name: '年', symbol: 'year', rate: 1/31536000 }
+    ]
+  },
+  { 
+    id: 'speed', 
+    name: '速度换算', 
+    icon: '🚀', 
+    desc: '速度单位换算',
+    units: [
+      { name: '米/秒', symbol: 'm/s', rate: 1 },
+      { name: '千米/时', symbol: 'km/h', rate: 3.6 },
+      { name: '英里/时', symbol: 'mph', rate: 2.23694 },
+      { name: '节', symbol: 'kn', rate: 1.94384 },
+      { name: '光速', symbol: 'c', rate: 3.3356e-9 },
+      { name: '马赫', symbol: 'Mach', rate: 0.00293858 }
+    ]
+  },
+  { 
+    id: 'data', 
+    name: '数据换算', 
+    icon: '💾', 
+    desc: '数据存储单位',
+    units: [
+      { name: '字节', symbol: 'B', rate: 1 },
+      { name: '千字节', symbol: 'KB', rate: 1/1024 },
+      { name: '兆字节', symbol: 'MB', rate: 1/1048576 },
+      { name: '千兆字节', symbol: 'GB', rate: 1/1073741824 },
+      { name: '太字节', symbol: 'TB', rate: 1/1099511627776 },
+      { name: '拍字节', symbol: 'PB', rate: 1/1125899906842624 }
+    ]
+  },
+  { 
+    id: 'energy', 
+    name: '能量换算', 
+    icon: '⚡', 
+    desc: '能量单位换算',
+    units: [
+      { name: '焦耳', symbol: 'J', rate: 1 },
+      { name: '千焦', symbol: 'kJ', rate: 0.001 },
+      { name: '卡路里', symbol: 'cal', rate: 0.239006 },
+      { name: '千卡', symbol: 'kcal', rate: 0.000239006 },
+      { name: '千瓦时', symbol: 'kWh', rate: 2.77778e-7 },
+      { name: '电子伏特', symbol: 'eV', rate: 6.24151e18 }
+    ]
+  },
+  { 
+    id: 'pressure', 
+    name: '压力换算', 
+    icon: '🌪️', 
+    desc: '压力单位换算',
+    units: [
+      { name: '帕斯卡', symbol: 'Pa', rate: 1 },
+      { name: '千帕', symbol: 'kPa', rate: 0.001 },
+      { name: '兆帕', symbol: 'MPa', rate: 0.000001 },
+      { name: '巴', symbol: 'bar', rate: 0.00001 },
+      { name: '大气压', symbol: 'atm', rate: 9.86923e-6 },
+      { name: '毫米汞柱', symbol: 'mmHg', rate: 0.00750062 }
+    ]
+  },
+  { 
+    id: 'number', 
+    name: '数字转换', 
+    icon: '🔢', 
+    desc: '阿拉伯数字转中文',
+    types: [
+      { name: '转换为中文大写数字', type: 'chinese' },
+      { name: '转换为中文金额', type: 'money' }
+    ]
+  }
+];
+
+// 初始化换算工具网格
+convertTools.forEach(tool => {
+  const item = document.createElement('div');
+  item.className = 'convert-item';
+  item.innerHTML = `
+    <div class="convert-icon" style="font-size: 30px;">${tool.icon}</div>
+    <div class="convert-name">${tool.name}</div>
+    <div class="convert-desc">${tool.desc}</div>
+  `;
+  item.addEventListener('click', () => {
+    openConvertModal(tool);
+    if (speechEnabled) speak(tool.name);
+  });
+  convertGrid.appendChild(item);
+});
+
+// 换算工具弹窗
+const modal = document.getElementById('convert-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalInputs = document.getElementById('modal-inputs');
+const modalResult = document.getElementById('modal-result');
+const modalClose = document.getElementById('modal-close');
+const modalCalculate = document.getElementById('modal-calculate');
+const convertKeypad = document.getElementById('convert-keypad');
+
+let currentTool = null;
+let activeInput = null;
+
+// 创建换算键盘
+function createConvertKeypad() {
+  convertKeypad.innerHTML = '';
+  
+  const keyboardLayout = [
+    [{ text: '7', value: '7', class: 'num' }, { text: '8', value: '8', class: 'num' }, 
+     { text: '9', value: '9', class: 'num' }, { text: '⌫', value: 'backspace', class: 'del' }],
+    [{ text: '4', value: '4', class: 'num' }, { text: '5', value: '5', class: 'num' }, 
+     { text: '6', value: '6', class: 'num' }, { text: 'C', value: 'clear', class: 'clear' }],
+    [{ text: '1', value: '1', class: 'num' }, { text: '2', value: '2', class: 'num' }, 
+     { text: '3', value: '3', class: 'num' }, { text: '%', value: '%', class: 'percent' }],
+    [{ text: '0', value: '0', class: 'zero' }, { text: '.', value: '.', class: 'dot' }]
+  ];
+  
+  keyboardLayout.forEach(row => {
+    row.forEach(key => {
+      const keyButton = document.createElement('button');
+      keyButton.className = `convert-key ${key.class}`;
+      keyButton.textContent = key.text;
+      keyButton.dataset.value = key.value;
+      
+      keyButton.addEventListener('click', () => {
+        handleConvertKeyPress(key.value);
+        if (speechEnabled) {
+          if (key.value === 'backspace') speak('退格');
+          else if (key.value === 'clear') speak('清除');
+          else if (key.value === '%') speak('百分比');
+          else speak(key.value);
+        }
+      });
+      
+      convertKeypad.appendChild(keyButton);
+    });
+  });
+}
+
+// 处理换算键盘按键
+function handleConvertKeyPress(value) {
+  if (!activeInput) return;
+  
+  if (value === 'backspace') {
+    // 删除最后一个字符
+    if (activeInput.value.length > 0) {
+      activeInput.value = activeInput.value.slice(0, -1);
+      triggerInputEvent(activeInput);
+    }
+  } else if (value === 'clear') {
+    // 清空输入框
+    activeInput.value = '';
+    triggerInputEvent(activeInput);
+  } else if (value === '%') {
+    // 百分比
+    if (activeInput.value && !isNaN(parseFloat(activeInput.value))) {
+      activeInput.value = (parseFloat(activeInput.value) / 100).toString();
+      triggerInputEvent(activeInput);
+    }
+  } else if (value === '.') {
+    // 小数点
+    if (!activeInput.value.includes('.')) {
+      if (activeInput.value === '') {
+        activeInput.value = '0.';
+      } else {
+        activeInput.value += '.';
+      }
+      triggerInputEvent(activeInput);
+    }
+  } else {
+    // 数字
+    activeInput.value += value;
+    triggerInputEvent(activeInput);
+  }
+}
+
+// 触发输入事件
+function triggerInputEvent(input) {
+  const event = new Event('input', { bubbles: true });
+  input.dispatchEvent(event);
+}
+
+// 设置输入框焦点
+function setupInputFocus() {
+  const inputs = modal.querySelectorAll('.unit-input');
+  inputs.forEach(input => {
+    input.addEventListener('focus', () => {
+      activeInput = input;
+    });
+    
+    // 点击输入框时自动聚焦
+    input.addEventListener('click', () => {
+      activeInput = input;
+    });
+  });
+}
+
+function openConvertModal(tool) {
+  currentTool = tool;
+  modalTitle.textContent = tool.name;
+  modalInputs.innerHTML = '';
+  modalResult.textContent = '0';
+  
+  if (tool.id === 'number') {
+    // 数字转换工具
+    modalInputs.innerHTML = `
+      <div class="unit-row">
+        <input type="text" class="unit-input" id="input-value" placeholder="输入阿拉伯数字" autocomplete="off">
+        <div class="arrow">→</div>
+        <select class="unit-select" id="conversion-type">
+          ${tool.types.map(type => `<option value="${type.type}">${type.name}</option>`).join('')}
+        </select>
+      </div>
+    `;
+  } else if (tool.id === 'temperature') {
+    modalInputs.innerHTML = `
+      <div class="unit-row">
+        <input type="text" class="unit-input" id="input-value" placeholder="输入数值" autocomplete="off">
+        <div class="arrow">→</div>
+        <select class="unit-select" id="from-unit">
+          ${tool.units.map(unit => `<option value="${unit.type}">${unit.name} (${unit.symbol})</option>`).join('')}
+        </select>
+      </div>
+      <div class="unit-row">
+        <input type="text" class="unit-input" id="input-value2" placeholder="结果" readonly style="background: rgba(255,255,255,0.05); color: #999;" autocomplete="off">
+        <div class="arrow">→</div>
+        <select class="unit-select" id="to-unit">
+          ${tool.units.map(unit => `<option value="${unit.type}" ${unit.type === 'fahrenheit' ? 'selected' : ''}>${unit.name} (${unit.symbol})</option>`).join('')}
+        </select>
+      </div>
+    `;
+  } else {
+    modalInputs.innerHTML = `
+      <div class="unit-row">
+        <input type="text" class="unit-input" id="input-value" placeholder="输入数值" autocomplete="off">
+        <div class="arrow">→</div>
+        <select class="unit-select" id="from-unit">
+          ${tool.units.map(unit => `<option value="${unit.rate}">${unit.name} (${unit.symbol})</option>`).join('')}
+        </select>
+      </div>
+      <div class="unit-row">
+        <input type="text" class="unit-input" id="input-value2" placeholder="结果" readonly style="background: rgba(255,255,255,0.05); color: #999;" autocomplete="off">
+        <div class="arrow">→</div>
+        <select class="unit-select" id="to-unit">
+          ${tool.units.map(unit => `<option value="${unit.rate}" ${unit.rate === 1 ? 'selected' : ''}>${unit.name} (${unit.symbol})</option>`).join('')}
+        </select>
+      </div>
+    `;
+  }
+  
+  // 创建换算键盘
+  createConvertKeypad();
+  
+  const inputValue = document.getElementById('input-value');
+  const inputValue2 = document.getElementById('input-value2');
+  const fromUnit = document.getElementById('from-unit');
+  const toUnit = document.getElementById('to-unit');
+  const conversionType = document.getElementById('conversion-type');
+  
+  if (inputValue) {
+    const calculateRealTime = () => {
+      if (tool.id === 'number') {
+        const value = inputValue.value.trim();
+        if (value) {
+          // 验证是否为有效的数字
+          const num = parseFloat(value);
+          if (!isNaN(num)) {
+            const type = conversionType.value;
+            let result = '';
+            if (type === 'chinese') {
+              result = arabicToChinese(value);
+            } else if (type === 'money') {
+              result = arabicToChineseMoney(value);
+            }
+            modalResult.textContent = result;
+          } else {
+            modalResult.textContent = '无效数字';
+          }
+        } else {
+          modalResult.textContent = '0';
+        }
+      } else if (tool.id === 'temperature') {
+        const value = parseFloat(inputValue.value);
+        if (!isNaN(value)) {
+          const from = fromUnit.value;
+          const to = toUnit.value;
+          let celsius = value;
+          
+          if (from === 'fahrenheit') celsius = (value - 32) * 5/9;
+          if (from === 'kelvin') celsius = value - 273.15;
+          
+          let result = celsius;
+          if (to === 'fahrenheit') result = celsius * 9/5 + 32;
+          if (to === 'kelvin') result = celsius + 273.15;
+          
+          if (inputValue2) inputValue2.value = result.toFixed(2);
+          const toSymbol = tool.units.find(u => u.type === to)?.symbol || '';
+          modalResult.textContent = `${result.toFixed(2)} ${toSymbol}`;
+        }
+      } else {
+        const value = parseFloat(inputValue.value);
+        if (!isNaN(value)) {
+          const fromRate = parseFloat(fromUnit.value);
+          const toRate = parseFloat(toUnit.value);
+          const result = (value * toRate / fromRate).toFixed(6).replace(/\.?0+$/, '');
+          if (inputValue2) inputValue2.value = result;
+          
+          const toSymbol = tool.units.find(u => u.rate == toRate)?.symbol || '';
+          modalResult.textContent = `${result} ${toSymbol}`;
+        }
+      }
+    };
+    
+    inputValue.addEventListener('input', calculateRealTime);
+    if (fromUnit) fromUnit.addEventListener('change', calculateRealTime);
+    if (toUnit) toUnit.addEventListener('change', calculateRealTime);
+    if (conversionType) conversionType.addEventListener('change', calculateRealTime);
+    
+    // 设置初始焦点
+    setTimeout(() => {
+      if (inputValue) {
+        inputValue.focus();
+        activeInput = inputValue;
+      }
+    }, 100);
+  }
+  
+  // 设置输入框焦点跟踪
+  setTimeout(setupInputFocus, 100);
+  
+  modal.style.display = 'flex';
+}
+
+modalClose.addEventListener('click', () => {
+  modal.style.display = 'none';
+  if (speechEnabled) speak('关闭窗口');
+});
+
+modalCalculate.addEventListener('click', () => {
+  // 计算功能已在实时计算中实现
+});
+
+modal.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.style.display = 'none';
+    if (speechEnabled) speak('关闭窗口');
+  }
+});
+
+// 菜单按钮
+document.getElementById('menu-btn').addEventListener('click', () => {
+  alert('🔧 沙漠倾城官方音乐计算器\n\n版本: 1.3.0\n开发者: 沙漠倾城官方\n功能: 计算 + 12种换算工具 + 语音播报 + 换算键盘\n\n包含汇率、长度、重量、温度、面积、体积、时间、速度、数据、能量、压力、数字转换\n\n语音功能: 点击顶部语音开关启用\n\n换算键盘: 在换算工具中提供数字输入功能\n\n如需更多功能，请访问下方沙漠倾城官方音乐官方网站！');
+  if (speechEnabled) speak('沙漠倾城官方音乐计算器');
+});
+
+// 键盘支持
+document.addEventListener('keydown', (e) => {
+  if (modal.style.display === 'flex') {
+    // 在换算模式中，处理数字键盘输入
+    if ('0123456789'.includes(e.key) && activeInput) {
+      e.preventDefault();
+      activeInput.value += e.key;
+      triggerInputEvent(activeInput);
+    } else if (e.key === '.' && activeInput) {
+      e.preventDefault();
+      if (!activeInput.value.includes('.')) {
+        activeInput.value += e.key === '.' ? '.' : e.key;
+        triggerInputEvent(activeInput);
+      }
+    } else if (e.key === 'Backspace' && activeInput) {
+      e.preventDefault();
+      if (activeInput.value.length > 0) {
+        activeInput.value = activeInput.value.slice(0, -1);
+        triggerInputEvent(activeInput);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      modalClose.click();
+    } else if (e.key === 'v' || e.key === 'V') {
+      e.preventDefault();
+      voiceBtn.click();
+    }
+  } else {
+    // 计算器模式键盘支持
+    const key = e.key;
+    if ('0123456789'.includes(key)) {
+      const button = document.querySelector(`button[data-number="${key}"]`);
+      if (button) handleButtonClick(button);
+    } else if (key === '.') {
+      const button = document.querySelector('button[data-number="."]');
+      if (button) handleButtonClick(button);
+    } else if (key === '+') {
+      const button = document.querySelector('button[data-operator="+"]');
+      if (button) handleButtonClick(button);
+    } else if (key === '-') {
+      const button = document.querySelector('button[data-operator="-"]');
+      if (button) handleButtonClick(button);
+    } else if (key === '*') {
+      const button = document.querySelector('button[data-operator="*"]');
+      if (button) handleButtonClick(button);
+    } else if (key === '/') {
+      e.preventDefault();
+      const button = document.querySelector('button[data-operator="/"]');
+      if (button) handleButtonClick(button);
+    } else if (key === 'Enter' || key === '=') {
+      const button = document.querySelector('button[data-action="calculate"]');
+      if (button) handleButtonClick(button);
+    } else if (key === 'Escape') {
+      const button = document.querySelector('button[data-action="clear"]');
+      if (button) handleButtonClick(button);
+    } else if (key === 'Backspace') {
+      const button = document.querySelector('button[data-action="backspace"]');
+      if (button) handleButtonClick(button);
+    } else if (key === '%') {
+      const button = document.querySelector('button[data-action="percent"]');
+      if (button) handleButtonClick(button);
+    } else if (key === 'v' || key === 'V') {
+      e.preventDefault();
+      voiceBtn.click();
+    }
+  }
+});
+
+// 初始化语音
+initializeSpeech();
+
+// 初始化显示
+updateDisplay();
+
+// 页面加载完成后的调试信息
+window.addEventListener('load', () => {
+  console.log('沙漠倾城计算器加载完成');
+});
+</script>
+</body>
+</html>
